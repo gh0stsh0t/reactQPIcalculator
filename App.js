@@ -20,7 +20,7 @@ const instructions = Platform.select({
 
 export default class App extends Component{
 
-  constructor(){
+  constructor() {
     super()
     this.state = {
       display: "",
@@ -31,121 +31,75 @@ export default class App extends Component{
 
   calculate = () => {
     const text = this.state.display
-    const arr = text.split(' | ')
-    sum = 0
-    eq = 0
-    for(i = 0; i < arr.length; i++){
-      if(arr[i] == 'A'){
-        eq = 4
-      }
-      else if(arr[i] == 'B+'){
-        eq = 3.5
-      }
-      else if(arr[i] == 'B'){
-        eq = 3
-      }
-      else if(arr[i] == 'C+'){
-        eq = 2.5
-      }
-      else if(arr[i] == 'C'){
-        eq = 2
-      }
-      else if(arr[i] == 'D'){
-        eq = 1
-      }
-      else if(arr[i] == 'F/FD'){
-        eq = 0
-      }
-
-      sum = sum + eq
-      eq = 0
-    }
-
-    result = sum/(arr.length-1)
+    const arr = [0, ...text.split(' | ')]
+    const values = { 'A':4, 'B+':3.5, 'B':3, 'C+': 2.5, 'C':2, 'D':1, 'F/FD':0, '':0 }
+    const total = arr.reduce((acc, letter)=>acc=acc+values[letter])/(arr.length-2)
     this.setState({
-      answer: result.toFixed(2)
+      answer: total.toFixed(2),
+      next: true
     })
-    this.state.next = true
   }
 
   keypressed = (letter) => {
-    if(letter == 'E'){
-      if(this.state.display != ""){
-        return this.calculate()
-      }
-      else{
-        alert('Please enter grades')
-      }
-    }
-    else if (letter == 'R'){
-      this.refresh_all()
-    }else{
-      if(this.state.next == true){
-        this.refresh_all()
-        this.state.next = false
-        this.state.display = ""
-      }
+    const { display, next, answer } = this.state
+    if(letter === 'E') {
+      if(display !== "") {
+        this.calculate()
+      } else {
         this.setState({
-          display: this.state.display + letter + ' | '
+          next: true,
+          display: "Please enter grades"
         })
+      }
+    } else {
+      this.setState({
+        next: false,
+        answer: next || letter === 'R' ? 0 : answer,
+        display: letter === 'R' ? "" : (next ? "" : display)+ letter + ' | '
+      })
     }
-  }
-
-  refresh_all = () => {
-    this.setState({
-      display: "",
-      answer: "0"
-    })
   }
 
   render() {
+    const { answer, display } = this.state
+    const { container, view_answer, view_display, view_keypad, row } = styles
     return (
-      <View style={styles.container}>
-      <View style={styles.view_answer}>
-          <Text style={styles.answer}> {this.state.answer} </Text>
+      <View style={container}>
+        <View style={view_answer}>
+          <Text style={styles.answer}> {answer} </Text>
         </View>
-        <View style={styles.view_display}>
-          <Text style={styles.display}> {this.state.display} </Text>
+        <View style={view_display}>
+          <Text style={styles.display}> {display} </Text>
         </View>
-        <View style={styles.view_keypad}>
-          <View style={styles.row}>
-            <TouchableOpacity onPress={this.keypressed.bind(this, 'A')} style={styles.lettergrades_btn}>
-              <Text style={styles.lettergrades_text}> A </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.keypressed.bind(this, 'B+')} style={styles.lettergrades_btn}>
-              <Text style={styles.lettergrades_text}> B+ </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.keypressed.bind(this, 'B')} style={styles.lettergrades_btn}>
-              <Text style={styles.lettergrades_text}> B </Text>
-            </TouchableOpacity>
+        <View style={view_keypad}>
+          <View style={row}>
+            <KeyButton onPress={()=>this.keypressed('A')} letter="A" version={1} />
+            <KeyButton onPress={()=>this.keypressed('B+')} letter="B+" version={1} />
+            <KeyButton onPress={()=>this.keypressed('B')} letter="B" version={1} />
           </View>
-          <View style={styles.row}>
-            <TouchableOpacity onPress={this.keypressed.bind(this, 'C+')} style={styles.lettergrades_btn}>
-              <Text style={styles.lettergrades_text}> C+ </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.keypressed.bind(this, 'C')} style={styles.lettergrades_btn}>
-              <Text style={styles.lettergrades_text}> C </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.keypressed.bind(this, 'D')} style={styles.lettergrades_btn}>
-              <Text style={styles.lettergrades_text}> D </Text>
-            </TouchableOpacity>
+          <View style={row}>
+            <KeyButton onPress={()=>this.keypressed('C+')} letter="C+" version={1} />
+            <KeyButton onPress={()=>this.keypressed('C')} letter="C" version={1} />
+            <KeyButton onPress={()=>this.keypressed('D')} letter="D" version={1} />
           </View>
-          <View style={styles.row}>
-            <TouchableOpacity onPress={this.keypressed.bind(this, 'F/FD')} style={styles.lettergrades_btn}>
-              <Text style={styles.lettergrades_text}> F/FD </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.keypressed.bind(this, 'R')} style={styles.lettergrades_btn}>
-            <Text style={styles.lettergrades_text2}> CE </Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={this.keypressed.bind(this, 'E')} style={styles.lettergrades_btn}>
-              <Text style={styles.lettergrades_text2}> = </Text>
-            </TouchableOpacity>
+          <View style={row}>
+            <KeyButton onPress={()=>this.keypressed('F/FD')} letter="F/FD" version={1} />
+            <KeyButton onPress={()=>this.keypressed('R')} letter="CE" version={2} />
+            <KeyButton onPress={()=>this.keypressed('E')} letter="=" version={2} />
           </View>
         </View>
       </View>
     );
   }
+}
 
+const KeyButton = (props) => {
+    const textStyle = props.version === 2 ? styles.lettergrades_text2 : styles.lettergrades_text
+    return (
+        <TouchableOpacity onPress={props.onPress} style={styles.lettergrades_btn}>
+            <Text style={textStyle}> {props.letter} </Text>
+        </TouchableOpacity>
+    )
 }
 
 const styles = StyleSheet.create({
